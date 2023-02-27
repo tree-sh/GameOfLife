@@ -25,10 +25,43 @@ function clickableGrid( rows, cols, callback ){
     return grid;
 }
 
+function implementRules(matrix) {
+    const resultMatrix = [];
+    for(i = 0; i < matrix.length; i++) {
+        const row = [];
+        for (j = 0; j < matrix[i].length; j++){
+            const rightCell = (j < matrix[i].length - 1 && matrix[i][j+1] === true);
+            const leftCell = (j > 0 && matrix[i][j-1] === true);
+            const downCell = (i > 0 && matrix[i-1][j] === true);
+            const upCell = (i < matrix.length - 1 && matrix[i+1][j] === true);
+            const upperRightCell = (i > 0 && j < matrix[i].length - 1 && matrix[i-1][j+1]);
+            const lowerRightCell = (i < matrix.length -1 && j < matrix[i].length - 1 && matrix[i+1][j+1]);
+            const upperLeftCell = (i > 0 && j < matrix[i].length - 1 && matrix[i-1][j-1]);
+            const lowerLeftCell = (i < matrix.length -1 && j < matrix[i].length - 1 && matrix[i+1][j-1]);
+
+            const conditions = [rightCell, leftCell, downCell, upCell, upperLeftCell, upperRightCell, lowerLeftCell, lowerRightCell];
+
+            const neighbors = conditions.filter(condition => condition === true).length;
+
+            if(matrix[i][j] === false && neighbors === 3) {
+                row.push(true)
+            } else if(matrix[i][j] === true) {
+                row.push(
+                    ((neighbors <= 1 || neighbors >= 4) ? false : true)
+                );
+            } else {
+                row.push(matrix[i][j]);
+            }
+        }
+        resultMatrix.push(row);
+    }
+    return resultMatrix;
+}
+
 function executeGame(){
     const grid = document.getElementById('grid');
     const rows = Array.from(grid.getElementsByTagName('tr'));
-    const matrix = [];
+    let matrix = [];
     rows.forEach((row) => {
         const matrixRow = [];
         const cols = Array.from(row.getElementsByTagName('td'));
@@ -41,5 +74,25 @@ function executeGame(){
         });
         matrix.push(matrixRow);
     });
-    console.log(matrix);
+    matrix = implementRules(matrix);
+    document.body.removeChild(grid);
+    
+    var i=0;
+    const newGrid = document.createElement('table');
+    newGrid.id = 'grid';
+    newGrid.className = 'grid';
+    for (let r=0 ;r < matrix.length;++r){
+        var tr = newGrid.appendChild(document.createElement('tr'));
+        for (let c=0; c<matrix[r].length; ++c){
+            const cell = tr.appendChild(document.createElement('td'));
+            cell.style.padding = '25px';
+            cell.className = (matrix[r][c] ? 'clicked' : '');
+            cell.addEventListener('click',(function(el)
+            {
+                el.target.className === "clicked" ? el.target.className = "" : el.target.className = "clicked";
+            }));
+        }
+    }
+    document.body.removeChild(document.body.lastChild);
+    document.body.appendChild(newGrid);
 }
